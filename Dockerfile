@@ -1,5 +1,7 @@
 FROM ghcr.io/evanrichter/cargo-fuzz as builder
 
+RUN apt update && apt install cmake -y
+
 ADD . /gzp
 WORKDIR /gzp/fuzz
 RUN cargo +nightly fuzz build 
