@@ -20,8 +20,8 @@ path = ".."
 members = ["."]
 
 [[bin]]
-name = "gzp-fuzz"
-path = "fuzz_targets/gzp-fuzz.rs"
+name = "compress"
+path = "fuzz_targets/compress.rs"
 test = false
 doc = false
 

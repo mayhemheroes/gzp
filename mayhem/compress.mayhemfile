@@ -1,6 +1,6 @@
 project: gzp
-target: gzp-fuzz
+target: compress
 
 cmds:
-    - cmd: ./gzp-fuzz
+    - cmd: ./compress
       libfuzzer: true
