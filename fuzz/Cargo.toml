@@ -24,3 +24,9 @@ name = "gzp-fuzz"
 path = "fuzz_targets/gzp-fuzz.rs"
 test = false
 doc = false
+
+[[bin]]
+name = "decompress"
+path = "fuzz_targets/decompress.rs"
+test = false
+doc = false
