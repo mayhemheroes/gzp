@@ -1,47 +1,56 @@
 #![no_main]
-use libfuzzer_sys::fuzz_target;
+
+use arbitrary::Arbitrary;
 use gzp::{
-    ZWriter,
-    deflate::Mgzip,
-    par::{compress::{ParCompress, ParCompressBuilder}}
+    deflate::{Bgzf, Gzip, Mgzip, RawDeflate, Zlib},
+    par::compress::ParCompressBuilder,
+    GzpError, ZWriter,
 };
-use std::io::{Read, Write};
+use libfuzzer_sys::fuzz_target;
 
-fuzz_target!(|data: &[u8]| {
-    // let opt = data[0];
-    // let new_data = &data[1..];
-    // match opt{
-    //     0=>{
+#[derive(Arbitrary, Debug)]
+enum Format {
+    Gzip,
+    Zlib,
+    Bgzf,
+    Mgzip,
+    RawDeflate,
+}
 
-    //     },
-    //     1=>{
+fuzz_target!(|input: (Format, &[u8])| {
+    let (format, data) = input;
+    let dummy_output = vec![0_u8; data.len()];
 
-    //     },
-    //     _=>()
-    // }
-    let mut dummy_output = vec![0 as u8; data.len() * 8];
-    let mut writer: ParCompress<Mgzip> = ParCompressBuilder::new().from_writer(dummy_output);
-    let chunk_size = 64;
-
-    let mut buffer = Vec::with_capacity(chunk_size);
-    let mut start = 0;
-    let mut end = 0;
-    loop {
-        end = start + chunk_size;
-        if end > data.len() {
-            end = data.len();
-        }
-        let mut limit = &data[start..end];
-        limit.read_to_end(&mut buffer).unwrap();
-        if buffer.is_empty() {
-            break;
-        }
-        writer.write_all(&buffer).unwrap();
-        buffer.clear();
-        start = end;
-        if start >= data.len() {
-            break;
-        }
-    }
-    writer.finish().unwrap();
+    let _ = match format {
+        Format::Gzip => test(
+            ParCompressBuilder::<Gzip>::new().from_writer(dummy_output),
+            data,
+        ),
+        Format::Zlib => test(
+            ParCompressBuilder::<Zlib>::new().from_writer(dummy_output),
+            data,
+        ),
+        Format::Bgzf => test(
+            ParCompressBuilder::<Bgzf>::new().from_writer(dummy_output),
+            data,
+        ),
+        Format::Mgzip => test(
+            ParCompressBuilder::<Mgzip>::new().from_writer(dummy_output),
+            data,
+        ),
+        Format::RawDeflate => test(
+            ParCompressBuilder::<RawDeflate>::new().from_writer(dummy_output),
+            data,
+        ),
+    };
 });
+
+const CHUNK_SIZE: usize = 64;
+
+fn test<T: ZWriter>(mut writer: T, data: &[u8]) -> Result<(), GzpError> {
+    for chunk in data.chunks(CHUNK_SIZE) {
+        writer.write_all(chunk)?;
+    }
+
+    writer.finish()
+}
