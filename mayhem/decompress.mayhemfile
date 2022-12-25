@@ -1,5 +1,0 @@
-project: gzp
-target: decompress
-
-cmds:
-  - cmd: ./decompress

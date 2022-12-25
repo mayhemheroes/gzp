@@ -26,7 +26,7 @@ test = false
 doc = false
 
 [[bin]]
-name = "decompress"
-path = "fuzz_targets/decompress.rs"
+name = "round_trip"
+path = "fuzz_targets/round_trip.rs"
 test = false
 doc = false
