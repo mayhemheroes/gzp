@@ -8,4 +8,4 @@ RUN cargo +nightly fuzz build
 
 FROM debian:bookworm
 COPY --from=builder /gzp/fuzz/target/x86_64-unknown-linux-gnu/release/compress /
-COPY --from=builder /gzp/fuzz/target/x86_64-unknown-linux-gnu/release/decompress /
+COPY --from=builder /gzp/fuzz/target/x86_64-unknown-linux-gnu/release/round_trip /
