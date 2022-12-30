@@ -50,25 +50,33 @@ fuzz_target!(|input: (Format, Vec<u8>)| {
 });
 
 fn test<F: BlockFormatSpec>(data: Vec<u8>) -> Result<(), GzpError> {
-    let compressed = Arc::new(Mutex::new(Cursor::new(vec![0_u8; data.len()])));
+    let compressed = Arc::new(Mutex::new(Cursor::new(Vec::<u8>::new())));
     let mut compressor = ParCompressBuilder::<F>::new().from_writer(SendableData {
         arc: compressed.clone(),
     });
     compressor.write_all(&data)?;
     compressor.finish()?;
 
-    let mut decompressed = vec![0_u8; data.len()];
-    let mut decompressor = ParDecompressBuilder::<F>::new().from_reader(SendableData {
-        arc: compressed.clone(),
-    });
-    let bytes_read = decompressor.read_to_end(&mut decompressed)?;
-    decompressor.finish()?;
+    let format = F::new();
+    let mut decompressor = format.create_decompressor();
+
+    let decompressed = format.decode_block(
+        &mut decompressor,
+        compressed.lock().unwrap().get_ref().as_slice(),
+        data.len(),
+    )?;
+
+    // let mut decompressed = vec![0_u8; data.len()];
+    // let mut decompressor = ParDecompressBuilder::<F>::new().from_reader(SendableData {
+    //     arc: compressed.clone(),
+    // });
+    // let bytes_read = decompressor.read_to_end(&mut decompressed)?;
+    // decompressor.finish()?;
 
     if data != decompressed {
         println!("Original: {data:?}");
         println!("After: {decompressed:?}");
         println!("Compressed: {:?}", compressed.lock().unwrap().get_ref());
-        println!("Bytes decompressed: {bytes_read:?}");
         panic!("Compression and decompression changed data");
     }
 
