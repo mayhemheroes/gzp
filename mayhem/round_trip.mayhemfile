@@ -1,0 +1,5 @@
+project: gzp
+target: round_trip
+
+cmds:
+  - cmd: ./round_trip

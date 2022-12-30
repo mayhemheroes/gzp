@@ -28,7 +28,7 @@ jobs:
             triplet: x64-linux
         mayhemfile:
           - mayhem/compress.mayhemfile
-          - mayhem/decompress.mayhemfile
+          - mayhem/round_trip.mayhemfile
 
     steps:
       - uses: actions/checkout@v2
