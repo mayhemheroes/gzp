@@ -57,25 +57,19 @@ fn test<F: BlockFormatSpec>(data: Vec<u8>) -> Result<(), GzpError> {
     compressor.write_all(&data)?;
     compressor.finish()?;
 
-    let format = F::new();
-    let mut decompressor = format.create_decompressor();
+    // Reset cursor after writing
+    compressed.lock().unwrap().set_position(0);
 
-    let decompressed = format.decode_block(
-        &mut decompressor,
-        compressed.lock().unwrap().get_ref().as_slice(),
-        data.len(),
-    )?;
-
-    // let mut decompressed = vec![0_u8; data.len()];
-    // let mut decompressor = ParDecompressBuilder::<F>::new().from_reader(SendableData {
-    //     arc: compressed.clone(),
-    // });
-    // let bytes_read = decompressor.read_to_end(&mut decompressed)?;
-    // decompressor.finish()?;
+    let mut decompressed = Vec::new();
+    let mut decompressor = ParDecompressBuilder::<F>::new().from_reader(SendableData {
+        arc: compressed.clone(),
+    });
+    let _bytes_read = decompressor.read_to_end(&mut decompressed)?;
+    decompressor.finish()?;
 
     if data != decompressed {
         println!("Original: {data:?}");
-        println!("After: {decompressed:?}");
+        println!("After round trip: {decompressed:?}");
         println!("Compressed: {:?}", compressed.lock().unwrap().get_ref());
         panic!("Compression and decompression changed data");
     }
