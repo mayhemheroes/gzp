@@ -1,0 +1,6 @@
+project: gzp
+target: gzp-fuzz
+
+cmds:
+    - cmd: ./gzp-fuzz
+      libfuzzer: true
