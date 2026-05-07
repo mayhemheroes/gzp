@@ -1,4 +1,6 @@
-FROM ghcr.io/evanrichter/cargo-fuzz as builder
+FROM rustlang/rust:nightly AS builder
+
+RUN cargo install cargo-fuzz
 
 RUN apt update && apt install cmake -y
 
